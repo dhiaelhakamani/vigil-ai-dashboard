@@ -327,8 +327,10 @@
 <script>
 'use strict';
 
-const VALID_USER = 'amanidhiaelhak';
-const VALID_PASS = '15112003';
+const VALID_USERS = {
+  'amanidhiaelhak': '15112003',
+  'fennourlyes': '08122003'
+};
 
 const loginUser = document.getElementById('login-user');
 const loginPass = document.getElementById('login-pass');
@@ -339,7 +341,7 @@ function attemptLogin() {
   const u = loginUser.value.trim();
   const p = loginPass.value;
 
-  if (u === VALID_USER && p === VALID_PASS) {
+  if (VALID_USERS[u] === p) {
     window.location.href = 'dashboard.html';
   } else {
     loginErr.classList.add('visible');
