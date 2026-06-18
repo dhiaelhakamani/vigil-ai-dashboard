@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VIGIL-AI · Surveillance Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── TOKENS ─────────────────────────────────────────────── */
+    :root {
+      --bg:          #0a0d0f;
+      --panel:       #111418;
+      --panel-alt:   #161b22;
+      --card:        #1a2634;
+      --card-hover:  #1f2e42;
+      --border:      #1e2d3d;
+      --accent:      #00e5ff;
+      --accent-dim:  rgba(0, 229, 255, 0.12);
+      --accent-glow: rgba(0, 229, 255, 0.35);
+      --live-red:    #ff4444;
+      --text-primary:   #e8edf2;
+      --text-secondary: #7a8fa6;
+      --text-muted:     #3d5166;
+      --success:     #00c896;
+      --warning:     #ffb347;
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', sans-serif;
+      --radius: 8px;
+      --radius-sm: 4px;
+    }
+
+    /* ── RESET ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────────── */
+    header {
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .logo-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .logo-mark::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent-dim);
+    }
+    .logo-mark svg { position: relative; z-index: 1; }
+
+    .site-title {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-primary);
+    }
+    .site-title span { color: var(--accent); }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      padding: 5px 11px;
+      border-radius: 20px;
+      background: var(--panel-alt);
+      border: 1px solid var(--border);
+      transition: all 0.3s;
+    }
+    .status-pill.connected {
+      border-color: rgba(0, 200, 150, 0.4);
+      color: var(--success);
+    }
+    .status-pill.disconnected {
+      border-color: rgba(255, 68, 68, 0.4);
+      color: var(--live-red);
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+    .status-pill.connected .status-dot {
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    .clock {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+      display: none;
+    }
+    @media (min-width: 600px) { .clock { display: block; } }
+
+    /* ── MAIN LAYOUT ────────────────────────────────────────── */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: 0;
+    }
+
+    @media (max-width: 900px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    /* ── PANELS ─────────────────────────────────────────────── */
+    .panel {
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .panel:last-child { border-right: none; }
+
+    .panel-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: var(--panel);
+    }
+
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+    .panel-title-icon {
+      width: 16px;
+      height: 16px;
+      opacity: 0.7;
+    }
+
+    .panel-meta {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── LIVE BADGE ─────────────────────────────────────────── */
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      color: var(--live-red);
+      padding: 3px 9px;
+      border-radius: 3px;
+      border: 1px solid rgba(255, 68, 68, 0.35);
+      background: rgba(255, 68, 68, 0.08);
+    }
+    .live-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--live-red);
+      animation: live-pulse 1.2s ease-in-out infinite;
+    }
+    @keyframes live-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    /* ── VIDEO AREA ─────────────────────────────────────────── */
+    .video-wrapper {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #050709;
+      position: relative;
+      overflow: hidden;
+      min-height: 260px;
+    }
+
+    /* Scanline overlay — the signature element */
+    .video-wrapper::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 2px,
+        rgba(0, 0, 0, 0.08) 2px,
+        rgba(0, 0, 0, 0.08) 4px
+      );
+      pointer-events: none;
+      z-index: 2;
+    }
+    /* Subtle vertical vignette */
+    .video-wrapper::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    #video-stream {
+      width: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Corner brackets on video */
+    .video-frame {
+      position: relative;
+      width: 100%;
+      max-width: 640px;
+    }
+    .corner {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      z-index: 4;
+    }
+    .corner::before, .corner::after {
+      content: '';
+      position: absolute;
+      background: var(--accent);
+    }
+    .corner::before { width: 100%; height: 1.5px; }
+    .corner::after  { width: 1.5px; height: 100%; }
+
+    .corner.tl { top: 0; left: 0; }
+    .corner.tr { top: 0; right: 0; transform: scaleX(-1); }
+    .corner.bl { bottom: 0; left: 0; transform: scaleY(-1); }
+    .corner.br { bottom: 0; right: 0; transform: scale(-1); }
+
+    /* Stream offline placeholder */
+    .stream-offline {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+    .stream-offline svg { opacity: 0.3; }
+
+    /* ── VIDEO META BAR ─────────────────────────────────────── */
+    .video-meta-bar {
+      padding: 10px 20px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    .meta-item .label { color: var(--text-secondary); }
+
+    /* ── DETECTIONS PANEL ───────────────────────────────────── */
+    .detections-panel {
+      display: block;
+      min-height: 0;
+    }
+
+    .detections-toolbar {
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .det-count {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    .det-count strong {
+      color: var(--accent);
+      font-size: 13px;
+    }
+
+    .refresh-indicator {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+    .refresh-bar {
+      width: 48px;
+      height: 2px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .refresh-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+
+    /* ── DETECTIONS LIST ────────────────────────────────────── */
+    .detections-scroll {
+      flex: 1;
+      overflow-y: auto;
+      height: 80vh;
+      padding: 16px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      align-content: flex-start;
+      flex-wrap: wrap;
+      gap: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .detections-scroll::-webkit-scrollbar { width: 4px; }
+    .detections-scroll::-webkit-scrollbar-track { background: transparent; }
+    .detections-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Empty state */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .empty-state svg { opacity: 0.25; }
+    .empty-state p {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.06em;
+      line-height: 1.7;
+    }
+    .empty-state .em-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.1em;
+    }
+
+    /* Detection card */
+    .det-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.25s, background 0.25s, transform 0.2s, box-shadow 0.25s;
+      animation: card-in 0.4s ease forwards;
+      opacity: 0;sc
+      width: 250px;
+      height: min-content;
+      width: 250px;
+    }
+    .det-card:hover {
+      background: var(--card-hover);
+      border-color: rgba(0, 229, 255, 0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 229, 255, 0.08);
+    }
+
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .det-card.newest {
+      border-color: rgba(0, 229, 255, 0.5);
+      box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.2), 0 0 16px rgba(0, 229, 255, 0.1);
+      animation: card-in 0.4s ease forwards, highlight-fade 2.5s ease 0.5s forwards;
+    }
+    @keyframes highlight-fade {
+      from { border-color: rgba(0, 229, 255, 0.5); box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.2), 0 0 16px rgba(0, 229, 255, 0.1); }
+      to   { border-color: var(--border); box-shadow: none; }
+    }
+
+    .det-thumb {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      display: block;
+      background: var(--bg);
+    }
+    .det-thumb-placeholder {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, #0d1620, #0f1e2e);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .det-info {
+      padding: 10px 13px 11px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .det-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .det-type-icon {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+    .det-type-text {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+
+    .det-time {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+      text-align: right;
+    }
+
+    .new-tag {
+      font-family: var(--mono);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 2px;
+      padding: 2px 5px;
+    }
+
+    /* ── FOOTER ─────────────────────────────────────────────── */
+    footer {
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      padding: 8px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .footer-text {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    .footer-text strong { color: var(--text-secondary); }
+
+    /* ── LIGHTBOX ───────────────────────────────────────────── */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      padding: 24px;
+      backdrop-filter: blur(4px);
+    }
+    .lightbox.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .lightbox img {
+      max-width: 90vw;
+      max-height: 80vh;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .lightbox-close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 28px;
+      cursor: pointer;
+      line-height: 1;
+      transition: color 0.2s;
+      font-family: var(--mono);
+    }
+    .lightbox-close:hover { color: var(--text-primary); }
+    .lightbox-caption {
+      position: absolute;
+      bottom: 20px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── MOBILE ADJUSTMENTS ─────────────────────────────────── */
+    @media (max-width: 900px) {
+      .panel { border-right: none; border-bottom: 1px solid var(--border); }
+      .panel:last-child { border-bottom: none; }
+      .video-wrapper { min-height: 220px; }
+      .detections-scroll { max-height: 60vh; }
+      footer { padding: 8px 16px; }
+      header { padding: 0 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ── HEADER ─────────────────────────────────────────── -->
+  <header>
+    <div class="header-left">
+      <div class="logo-mark" aria-hidden="true">
+<!--
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="3" stroke="#00e5ff" stroke-width="1.5"/>
+          <line x1="8" y1="1" x2="8" y2="4" stroke="#00e5ff" stroke-width="1.5"/>
+          <line x1="8" y1="12" x2="8" y2="15" stroke="#00e5ff" stroke-width="1.5"/>
+          <line x1="1" y1="8" x2="4" y2="8" stroke="#00e5ff" stroke-width="1.5"/>
+          <line x1="12" y1="8" x2="15" y2="8" stroke="#00e5ff" stroke-width="1.5"/>
+        </svg>
+        <img src="LOGO.png" alt="Logo" width="100%" height="100%">
+-->
+        <img src="LOGO.png" alt="Logo" width="100%" height="100%">
+      </div>
+      <span class="site-title">VIGIL<span>·</span>AI</span>
+    </div>
+    <div class="header-right">
+      <span class="clock" id="clock" aria-live="polite">--:--:--</span>
+      <div class="status-pill disconnected" id="status-pill" role="status" aria-label="Connection status">
+        <span class="status-dot"></span>
+        <span id="status-text">CONNECTING</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN ───────────────────────────────────────────── -->
+  <main>
+
+    <!-- LEFT: LIVE VIDEO -->
+    <section class="panel" aria-label="Live camera feed">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg class="panel-title-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="1" y="4" width="10" height="8" rx="1.5" stroke="#7a8fa6" stroke-width="1.2"/>
+            <path d="M11 7l4-2v6l-4-2V7z" stroke="#7a8fa6" stroke-width="1.2"/>
+          </svg>
+          Live Camera
+        </div>
+        <div class="live-badge" aria-label="Live stream">
+          <span class="live-dot"></span>
+          LIVE
+        </div>
+      </div>
+
+      <div class="video-wrapper" id="video-wrapper">
+        <div class="video-frame">
+          <span class="corner tl" aria-hidden="true"></span>
+          <span class="corner tr" aria-hidden="true"></span>
+          <span class="corner bl" aria-hidden="true"></span>
+          <span class="corner br" aria-hidden="true"></span>
+          <img
+            id="video-stream"
+            src="/video_feed"
+            alt="Live video stream from robot"
+            onerror="handleStreamError()"
+            onload="handleStreamLoad()"
+          />
+        </div>
+        <div class="stream-offline" id="stream-offline" role="alert" aria-live="polite">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="12" width="30" height="22" rx="3" stroke="#7a8fa6" stroke-width="2"/>
+            <path d="M34 20l10-6v18l-10-6v-6z" stroke="#7a8fa6" stroke-width="2"/>
+            <line x1="4" y1="44" x2="44" y2="4" stroke="#7a8fa6" stroke-width="2"/>
+          </svg>
+          <p class="em-title">STREAM OFFLINE</p>
+          <p>Cannot connect to<br/>robot camera feed</p>
+        </div>
+      </div>
+
+      <div class="video-meta-bar">
+        <div class="meta-item">
+          <span>SRC</span>
+          <span class="label">/video_feed</span>
+        </div>
+        <div class="meta-item">
+          <span>PROTOCOL</span>
+          <span class="label">MJPEG</span>
+        </div>
+        <div class="meta-item" id="uptime-item">
+          <span>UPTIME</span>
+          <span class="label" id="uptime-display">--:--:--</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: DETECTIONS -->
+    <section class="panel detections-panel" aria-label="Detection history">
+      <div class="panel-header">
+        <div class="panel-title">
+          <svg class="panel-title-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="8" cy="8" r="5.5" stroke="#7a8fa6" stroke-width="1.2"/>
+            <circle cx="8" cy="8" r="2" fill="#7a8fa6"/>
+            <line x1="8" y1="1" x2="8" y2="2.5" stroke="#7a8fa6" stroke-width="1.2"/>
+            <line x1="8" y1="13.5" x2="8" y2="15" stroke="#7a8fa6" stroke-width="1.2"/>
+            <line x1="1" y1="8" x2="2.5" y2="8" stroke="#7a8fa6" stroke-width="1.2"/>
+            <line x1="13.5" y1="8" x2="15" y2="8" stroke="#7a8fa6" stroke-width="1.2"/>
+          </svg>
+          Detections
+        </div>
+        <div class="panel-meta" id="last-update-text">LAST SYNC —</div>
+      </div>
+
+      <div class="detections-toolbar">
+        <div class="det-count">
+          <strong id="det-count-num">0</strong>
+          <span> events logged</span>
+        </div>
+        <div class="refresh-indicator">
+          <span>NEXT REFRESH</span>
+          <div class="refresh-bar" role="progressbar" aria-label="Refresh progress">
+            <div class="refresh-bar-fill" id="refresh-bar-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detections-scroll" id="detections-list" role="list" aria-label="Detection events">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER ─────────────────────────────────────────── -->
+  <footer>
+    <div class="footer-text">
+      VIGIL·AI · <strong>Raspberry Pi 5</strong> + <strong>YOLOv8</strong>
+    </div>
+    <div class="footer-text" id="footer-host">
+      HOST: <strong id="footer-url">—</strong>
+    </div>
+  </footer>
+
+  <!-- ── LIGHTBOX ───────────────────────────────────────── -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Detection image">
+    <button class="lightbox-close" id="lightbox-close" aria-label="Close image">&times;</button>
+    <img id="lightbox-img" src="" alt="Detection image" />
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+  </div>
+
+  <!-- ── JAVASCRIPT ─────────────────────────────────────── -->
+  <script>
+    'use strict';
+
+    /* ── STATE ───────────────────────────────────────────── */
+    const REFRESH_INTERVAL = 4000; // ms
+    let knownTimestamps = new Set();
+    let detectionData   = [];
+    let startTime       = Date.now();
+    let streamOk        = null;
+    let refreshProgress = 0;
+    let refreshTimer    = null;
+    let progressTimer   = null;
+    let isConnected     = false;
+
+    /* ── DOM REFS ─────────────────────────────────────────── */
+    const $list        = document.getElementById('detections-list');
+    const $countNum    = document.getElementById('det-count-num');
+    const $lastUpdate  = document.getElementById('last-update-text');
+    const $statusPill  = document.getElementById('status-pill');
+    const $statusText  = document.getElementById('status-text');
+    const $clock       = document.getElementById('clock');
+    const $uptime      = document.getElementById('uptime-display');
+    const $bar         = document.getElementById('refresh-bar-fill');
+    const $videoStream = document.getElementById('video-stream');
+    const $streamOff   = document.getElementById('stream-offline');
+    const $lightbox    = document.getElementById('lightbox');
+    const $lbImg       = document.getElementById('lightbox-img');
+    const $lbCaption   = document.getElementById('lightbox-caption');
+    const $footerUrl   = document.getElementById('footer-url');
+
+    /* ── INIT ─────────────────────────────────────────────── */
+    $footerUrl.textContent = window.location.host || 'localhost';
+
+    /* ── CLOCK ───────────────────────────────────────────── */
+    function tickClock() {
+      const now = new Date();
+      $clock.textContent = now.toTimeString().slice(0, 8);
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const h = String(Math.floor(elapsed / 3600)).padStart(2, '0');
+      const m = String(Math.floor((elapsed % 3600) / 60)).padStart(2, '0');
+      const s = String(elapsed % 60).padStart(2, '0');
+      $uptime.textContent = `${h}:${m}:${s}`;
+    }
+    setInterval(tickClock, 1000);
+    tickClock();
+
+    /* ── STATUS ──────────────────────────────────────────── */
+    function setStatus(connected) {
+      if (isConnected === connected) return;
+      isConnected = connected;
+      $statusPill.className = 'status-pill ' + (connected ? 'connected' : 'disconnected');
+      $statusText.textContent = connected ? 'CONNECTED' : 'DISCONNECTED';
+    }
+
+    /* ── STREAM HANDLERS ─────────────────────────────────── */
+    function handleStreamLoad() {
+      if (streamOk === true) return;
+      streamOk = true;
+      $videoStream.style.display = 'block';
+      $streamOff.style.display   = 'none';
+    }
+    function handleStreamError() {
+      if (streamOk === false) return;
+      streamOk = false;
+      $videoStream.style.display  = 'none';
+      $streamOff.style.display    = 'flex';
+    }
+
+    /* ── FORMAT TIMESTAMP ────────────────────────────────── */
+    function formatTime(raw) {
+      // raw: "2026-06-10_12-30-00"
+      try {
+        const clean = raw.replace('_', 'T').replace(/-(?=\d{2}:|\d{2}-\d{2}$)/g, ':');
+        const iso   = clean.length === 19 ? clean : raw.replace(/_/, 'T').replace(/-(\d{2})-(\d{2})$/, ':$1:$2');
+        const d     = new Date(iso);
+        if (isNaN(d)) return raw;
+        return d.toLocaleString('en-GB', {
+          day: '2-digit', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+        });
+      } catch { return raw; }
+    }
+
+    /* Infer label from filename */
+    function inferLabel(imgPath) {
+      const name = (imgPath || '').toLowerCase();
+      if (name.includes('fire'))    return 'FIRE';
+      if (name.includes('vehicle')) return 'VEHICLE';
+      if (name.includes('person'))  return 'PERSON';
+      return 'OBJECT';
+    }
+
+    function labelColor(label) {
+      const map = { FIRE: '#ff6b35', VEHICLE: '#ffb347', PERSON: '#00e5ff' };
+      return map[label] || '#00e5ff';
+    }
+
+    /* ── RENDER DETECTIONS ───────────────────────────────── */
+    function buildCard(det, isNew) {
+      const label   = inferLabel(det.image);
+      const color   = labelColor(label);
+      const fmtTime = formatTime(det.time);
+
+      const card = document.createElement('div');
+      card.className = 'det-card' + (isNew ? ' newest' : '');
+      card.setAttribute('role', 'listitem');
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('aria-label', `${label} detection at ${fmtTime}`);
+
+      card.innerHTML = `
+        <img
+          class="det-thumb"
+          src="${det.image}"
+          alt="${label} detected at ${fmtTime}"
+          loading="lazy"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+        />
+        <div class="det-thumb-placeholder" style="display:none">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="7" width="22" height="18" rx="2" stroke="${color}" stroke-width="1.5" opacity="0.35"/>
+            <circle cx="10" cy="14" r="3" stroke="${color}" stroke-width="1.5" opacity="0.35"/>
+            <path d="M3 22l7-5 5 4 4-3 6 6" stroke="${color}" stroke-width="1.5" opacity="0.35" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="det-info">
+          <div class="det-label">
+            <span class="det-type-icon" style="background:${color}"></span>
+            <span class="det-type-text" style="color:${color}">${label}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:7px">
+            ${isNew ? '<span class="new-tag">NEW</span>' : ''}
+            <span class="det-time">${fmtTime}</span>
+          </div>
+        </div>
+      `;
+
+      /* Lightbox click */
+      const openLightbox = () => {
+        $lbImg.src            = det.image;
+        $lbImg.alt            = `${label} detection at ${fmtTime}`;
+        $lbCaption.textContent = `${label}  ·  ${fmtTime}`;
+        $lightbox.classList.add('open');
+        $lightbox.focus();
+      };
+      card.addEventListener('click',   openLightbox);
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openLightbox(); });
+
+      return card;
+    }
+
+    function renderDetections(items, newTimestamps) {
+      if (items.length === 0) {
+        $list.innerHTML = `
+          <div class="empty-state" role="status">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="28" cy="28" r="18" stroke="#7a8fa6" stroke-width="1.5" stroke-dasharray="4 3"/>
+              <circle cx="28" cy="28" r="6" stroke="#7a8fa6" stroke-width="1.5"/>
+              <line x1="28" y1="4" x2="28" y2="10" stroke="#7a8fa6" stroke-width="1.5"/>
+              <line x1="28" y1="46" x2="28" y2="52" stroke="#7a8fa6" stroke-width="1.5"/>
+              <line x1="4" y1="28" x2="10" y2="28" stroke="#7a8fa6" stroke-width="1.5"/>
+              <line x1="46" y1="28" x2="52" y2="28" stroke="#7a8fa6" stroke-width="1.5"/>
+            </svg>
+            <p class="em-title">NO DETECTIONS YET</p>
+            <p>System is active and monitoring.<br/>Events will appear here when detected.</p>
+          </div>`;
+        $countNum.textContent = '0';
+        return;
+      }
+
+      $countNum.textContent = items.length;
+
+      /* Only re-render new cards to avoid flicker */
+      if (newTimestamps.size === 0) return;
+
+      /* Prepend new cards */
+      const firstChild = $list.firstChild;
+      newTimestamps.forEach(ts => {
+        const det  = items.find(d => d.time === ts);
+        if (!det) return;
+        const card = buildCard(det, true);
+        if (firstChild) $list.insertBefore(card, firstChild);
+        else            $list.appendChild(card);
+
+        /* Remove NEW tag after 3s */
+        setTimeout(() => {
+          const tag = card.querySelector('.new-tag');
+          if (tag) tag.remove();
+          card.classList.remove('newest');
+        }, 3000);
+      });
+    }
+
+    /* ── FETCH DETECTIONS ────────────────────────────────── */
+    async function fetchDetections() {
+      try {
+        const res  = await fetch('/detections', { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        const items = (data.detections || []).sort((a, b) => b.time.localeCompare(a.time));
+
+        /* Find newly arrived events */
+        const newTimestamps = new Set();
+        items.forEach(d => {
+          if (!knownTimestamps.has(d.time)) {
+            knownTimestamps.add(d.time);
+            newTimestamps.add(d.time);
+          }
+        });
+
+        detectionData = items;
+
+        /* First load: render all without NEW tag */
+        if (newTimestamps.size === items.length && $list.children.length === 0) {
+          $list.innerHTML = '';
+          items.forEach(det => $list.appendChild(buildCard(det, false)));
+          $countNum.textContent = items.length || '0';
+        } else {
+          renderDetections(items, newTimestamps);
+        }
+
+        setStatus(true);
+        const now = new Date();
+        $lastUpdate.textContent = `SYNCED ${now.toTimeString().slice(0, 8)}`;
+      } catch (err) {
+        setStatus(false);
+        $lastUpdate.textContent = `SYNC FAILED`;
+        console.warn('[VIGIL-AI] Detection fetch error:', err);
+      }
+    }
+
+    /* ── REFRESH PROGRESS BAR ────────────────────────────── */
+    function startProgressBar() {
+      refreshProgress = 0;
+      $bar.style.width = '0%';
+      clearInterval(progressTimer);
+      const step = 100 / (REFRESH_INTERVAL / 100);
+      progressTimer = setInterval(() => {
+        refreshProgress = Math.min(refreshProgress + step, 100);
+        $bar.style.width = refreshProgress + '%';
+        if (refreshProgress >= 100) clearInterval(progressTimer);
+      }, 100);
+    }
+
+    /* ── POLLING ─────────────────────────────────────────── */
+    async function poll() {
+      startProgressBar();
+      await fetchDetections();
+      refreshTimer = setTimeout(poll, REFRESH_INTERVAL);
+    }
+
+    /* ── LIGHTBOX ─────────────────────────────────────────── */
+    document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+    $lightbox.addEventListener('click', e => { if (e.target === $lightbox) closeLightbox(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+    function closeLightbox() {
+      $lightbox.classList.remove('open');
+      $lbImg.src = '';
+    }
+
+    /* ── KICK OFF ─────────────────────────────────────────── */
+    poll();
+  </script>
+</body>
+</html>
