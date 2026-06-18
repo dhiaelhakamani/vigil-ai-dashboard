@@ -145,6 +145,20 @@
     }
     @media (min-width: 600px) { .clock { display: block; } }
 
+    .logout-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      padding: 5px 11px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .logout-btn:hover { border-color: var(--live-red); color: var(--live-red); }
+
     /* ── MAIN LAYOUT ────────────────────────────────────────── */
     main {
       flex: 1;
@@ -641,6 +655,7 @@
         <span class="status-dot"></span>
         <span id="status-text">CONNECTING</span>
       </div>
+      <button class="logout-btn" id="logout-btn" aria-label="Log out">LOGOUT</button>
     </div>
   </header>
 
@@ -1019,6 +1034,11 @@
       $lightbox.classList.remove('open');
       $lbImg.src = '';
     }
+
+    /* ── LOGOUT ──────────────────────────────────────────── */
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      window.location.href = 'index.html';
+    });
 
     /* ── KICK OFF ─────────────────────────────────────────── */
     poll();
