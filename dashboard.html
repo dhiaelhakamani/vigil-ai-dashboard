@@ -39,10 +39,10 @@
       background: var(--bg);
       color: var(--text-primary);
       font-family: var(--sans);
-      min-height: 100vh;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     /* ── HEADER ─────────────────────────────────────────────── */
@@ -164,8 +164,11 @@
       flex: 1;
       display: grid;
       grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr;
       gap: 0;
       min-height: 0;
+      max-height: 100%;
+      overflow: hidden;
     }
 
     @media (max-width: 900px) {
@@ -252,7 +255,7 @@
       background: #050709;
       position: relative;
       overflow: hidden;
-      min-height: 180px;
+      min-height: 80px;
     }
 
     /* Scanline overlay — the signature element */
@@ -928,7 +931,7 @@
     @media (max-width: 900px) {
       .panel { border-right: none; border-bottom: 1px solid var(--border); }
       .panel:last-child { border-bottom: none; }
-      .video-wrapper { min-height: 140px; }
+      .video-wrapper { min-height: 60px; }
       .detections-scroll { min-height: 120px; }
       footer { padding: 8px 16px; }
       header { padding: 0 16px; }
