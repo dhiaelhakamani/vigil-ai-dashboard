@@ -613,6 +613,192 @@
       letter-spacing: 0.06em;
     }
 
+    /* ── SETTINGS MODAL ─────────────────────────────────────── */
+    .settings-trigger {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 5px 7px;
+      display: flex;
+      align-items: center;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .settings-trigger:hover { border-color: var(--accent); color: var(--accent); }
+
+    .settings-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      padding: 24px;
+      backdrop-filter: blur(4px);
+    }
+    .settings-modal.open { opacity: 1; pointer-events: all; }
+
+    .settings-card {
+      width: 440px;
+      max-width: calc(100vw - 48px);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+    }
+
+    .settings-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .settings-head h2 {
+      font-family: var(--mono);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: var(--text-primary);
+    }
+    .settings-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 22px;
+      cursor: pointer;
+      font-family: var(--mono);
+      line-height: 1;
+      transition: color 0.2s;
+      padding: 0 4px;
+    }
+    .settings-close:hover { color: var(--text-primary); }
+
+    .settings-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .settings-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+    .settings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .settings-row-text {
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+
+    .settings-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 120px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      outline: none;
+    }
+    .settings-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid var(--panel);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .toggle-wrap {
+      position: relative;
+      width: 38px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .toggle-wrap input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: var(--border);
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background 0.25s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: var(--text-primary);
+      border-radius: 50%;
+      transition: transform 0.25s;
+    }
+    .toggle-wrap input:checked + .toggle-slider { background: var(--accent); }
+    .toggle-wrap input:checked + .toggle-slider::before { transform: translateX(16px); }
+
+    .settings-checkboxes {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .settings-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .settings-checkbox input {
+      accent-color: var(--accent);
+    }
+    .settings-checkbox label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── EXPORT BUTTON ──────────────────────────────────────── */
+    .export-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .export-btn:hover { border-color: var(--success); color: var(--success); }
+
     /* ── MOBILE ADJUSTMENTS ─────────────────────────────────── */
     @media (max-width: 900px) {
       .panel { border-right: none; border-bottom: 1px solid var(--border); }
@@ -655,6 +841,12 @@
         <span class="status-dot"></span>
         <span id="status-text">CONNECTING</span>
       </div>
+      <button class="settings-trigger" id="settings-btn" aria-label="Settings" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="8" cy="8" r="2.5" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M8 1v2M8 13v2M1 8h2M13 8h2M2.5 2.5l1.5 1.5M12 12l1.5 1.5M2.5 13.5l1.5-1.5M12 4l1.5-1.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </button>
       <button class="logout-btn" id="logout-btn" aria-label="Log out">LOGOUT</button>
     </div>
   </header>
@@ -741,11 +933,19 @@
           <strong id="det-count-num">0</strong>
           <span> events logged</span>
         </div>
-        <div class="refresh-indicator">
-          <span>NEXT REFRESH</span>
-          <div class="refresh-bar" role="progressbar" aria-label="Refresh progress">
-            <div class="refresh-bar-fill" id="refresh-bar-fill"></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="refresh-indicator">
+            <span>NEXT REFRESH</span>
+            <div class="refresh-bar" role="progressbar" aria-label="Refresh progress">
+              <div class="refresh-bar-fill" id="refresh-bar-fill"></div>
+            </div>
           </div>
+          <button class="export-btn" id="export-btn" aria-label="Export detections as CSV">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 1v7M3 5l3 3 3-3M2 10h8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            CSV
+          </button>
         </div>
       </div>
 
@@ -771,6 +971,57 @@
     <button class="lightbox-close" id="lightbox-close" aria-label="Close image">&times;</button>
     <img id="lightbox-img" src="" alt="Detection image" />
     <div class="lightbox-caption" id="lightbox-caption"></div>
+  </div>
+
+  <!-- ── SETTINGS MODAL ─────────────────────────────────── -->
+  <div class="settings-modal" id="settings-modal" role="dialog" aria-modal="true" aria-label="Settings">
+    <div class="settings-card">
+      <div class="settings-head">
+        <h2>SETTINGS</h2>
+        <button class="settings-close" id="settings-close" aria-label="Close settings">&times;</button>
+      </div>
+
+      <div class="settings-group">
+        <span class="settings-label">Refresh Interval</span>
+        <div class="settings-row">
+          <span class="settings-row-text" id="refresh-value-text">4s</span>
+          <input type="range" class="settings-slider" id="refresh-slider" min="1000" max="10000" step="500" value="4000" />
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <div class="settings-row">
+          <span class="settings-label">Alert Sound</span>
+          <label class="toggle-wrap">
+            <input type="checkbox" id="alert-toggle" checked />
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--text-muted);letter-spacing:0.04em">Plays a beep when new detections arrive</span>
+      </div>
+
+      <div class="settings-group">
+        <span class="settings-label">Alert on detection type</span>
+        <div class="settings-checkboxes">
+          <div class="settings-checkbox">
+            <input type="checkbox" id="alert-fire" checked />
+            <label for="alert-fire">FIRE</label>
+          </div>
+          <div class="settings-checkbox">
+            <input type="checkbox" id="alert-person" checked />
+            <label for="alert-person">PERSON</label>
+          </div>
+          <div class="settings-checkbox">
+            <input type="checkbox" id="alert-vehicle" />
+            <label for="alert-vehicle">VEHICLE</label>
+          </div>
+          <div class="settings-checkbox">
+            <input type="checkbox" id="alert-object" />
+            <label for="alert-object">OBJECT</label>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ── JAVASCRIPT ─────────────────────────────────────── -->
@@ -986,6 +1237,16 @@
 
         detectionData = items;
 
+        /* Alert sound for new detections matching alert types */
+        if (newTimestamps.size > 0) {
+          let shouldAlert = false;
+          for (const ts of newTimestamps) {
+            const det = items.find(d => d.time === ts);
+            if (det && alertTypes.has(inferLabel(det.image))) { shouldAlert = true; break; }
+          }
+          if (shouldAlert) playAlertSound();
+        }
+
         /* First load: render all without NEW tag */
         if (newTimestamps.size === items.length && $list.children.length === 0) {
           $list.innerHTML = '';
@@ -1010,7 +1271,7 @@
       refreshProgress = 0;
       $bar.style.width = '0%';
       clearInterval(progressTimer);
-      const step = 100 / (REFRESH_INTERVAL / 100);
+      const step = 100 / (refreshInterval / 100);
       progressTimer = setInterval(() => {
         refreshProgress = Math.min(refreshProgress + step, 100);
         $bar.style.width = refreshProgress + '%';
@@ -1022,7 +1283,7 @@
     async function poll() {
       startProgressBar();
       await fetchDetections();
-      refreshTimer = setTimeout(poll, REFRESH_INTERVAL);
+      refreshTimer = setTimeout(poll, refreshInterval);
     }
 
     /* ── LIGHTBOX ─────────────────────────────────────────── */
@@ -1033,6 +1294,103 @@
     function closeLightbox() {
       $lightbox.classList.remove('open');
       $lbImg.src = '';
+    }
+
+    /* ── SETTINGS ────────────────────────────────────────── */
+    const $settingsModal = document.getElementById('settings-modal');
+    const $settingsBtn   = document.getElementById('settings-btn');
+    const $settingsClose = document.getElementById('settings-close');
+    const $refreshSlider = document.getElementById('refresh-slider');
+    const $refreshText   = document.getElementById('refresh-value-text');
+    const $alertToggle   = document.getElementById('alert-toggle');
+    const $alertFire     = document.getElementById('alert-fire');
+    const $alertPerson   = document.getElementById('alert-person');
+    const $alertVehicle  = document.getElementById('alert-vehicle');
+    const $alertObject   = document.getElementById('alert-object');
+
+    let alertSoundOn = true;
+    let alertTypes = new Set();
+    let refreshInterval = REFRESH_INTERVAL;
+    updateAlertTypes();
+
+    $settingsBtn.addEventListener('click', () => {
+      $settingsModal.classList.add('open');
+      $settingsModal.focus();
+    });
+    $settingsClose.addEventListener('click', closeSettings);
+    $settingsModal.addEventListener('click', e => { if (e.target === $settingsModal) closeSettings(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSettings(); });
+
+    function closeSettings() {
+      $settingsModal.classList.remove('open');
+    }
+
+    $refreshSlider.addEventListener('input', () => {
+      const val = parseInt($refreshSlider.value);
+      $refreshText.textContent = (val / 1000).toFixed(1) + 's';
+    });
+    $refreshSlider.addEventListener('change', () => {
+      refreshInterval = parseInt($refreshSlider.value);
+      clearTimeout(refreshTimer);
+      clearInterval(progressTimer);
+      poll();
+    });
+
+    $alertToggle.addEventListener('change', () => {
+      alertSoundOn = $alertToggle.checked;
+    });
+
+    function updateAlertTypes() {
+      alertTypes.clear();
+      if ($alertFire.checked)    alertTypes.add('FIRE');
+      if ($alertPerson.checked)  alertTypes.add('PERSON');
+      if ($alertVehicle.checked) alertTypes.add('VEHICLE');
+      if ($alertObject.checked)  alertTypes.add('OBJECT');
+    }
+    [$alertFire, $alertPerson, $alertVehicle, $alertObject].forEach(cb => {
+      cb.addEventListener('change', updateAlertTypes);
+    });
+
+    /* ── ALERT SOUND ─────────────────────────────────────── */
+    let audioCtx = null;
+    function playAlertSound() {
+      if (!alertSoundOn) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(660, audioCtx.currentTime + 0.15);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch (e) { console.warn('[VIGIL-AI] Audio not available:', e); }
+    }
+
+    /* ── EXPORT CSV ──────────────────────────────────────── */
+    document.getElementById('export-btn').addEventListener('click', exportCSV);
+
+    function exportCSV() {
+      if (detectionData.length === 0) return;
+      const header = 'time,type,image';
+      const rows = detectionData.map(d => {
+        const label = inferLabel(d.image);
+        return `${d.time},${label},${d.image}`;
+      });
+      const csv = header + '\n' + rows.join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vigil-ai-detections_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
     /* ── LOGOUT ──────────────────────────────────────────── */
