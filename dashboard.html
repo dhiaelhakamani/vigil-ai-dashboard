@@ -934,7 +934,28 @@
       .video-wrapper { min-height: 60px; }
       .detections-scroll { min-height: 120px; }
       footer { padding: 8px 16px; }
-      header { padding: 0 16px; }
+      header { padding: 0 12px; }
+      .header-right { gap: 8px; }
+      .clock { display: none; }
+      .status-pill { padding: 4px 8px; font-size: 10px; }
+      .telemetry-wrap { gap: 6px; }
+      .telem-item .telem-bar { display: none; }
+      .telem-item { font-size: 9px; }
+      .detections-toolbar { flex-wrap: wrap; gap: 6px; }
+      .stats-bar { flex-wrap: wrap; gap: 8px; padding: 6px 12px; }
+      .stat-item { font-size: 10px; }
+      .video-meta-bar { flex-wrap: wrap; gap: 4px; padding: 6px 12px; }
+      .meta-item { font-size: 9px; }
+    }
+    @media (max-width: 480px) {
+      .site-title { font-size: 12px; }
+      .settings-trigger svg { width: 14px; height: 14px; }
+      .live-badge { font-size: 9px; padding: 2px 6px; }
+      .panel-title { font-size: 10px; }
+      .video-wrapper { padding: 8px; }
+      .telemetry-wrap .telem-item:nth-child(2) { display: none; }
+      .det-count span { display: none; }
+      .telem-item { font-size: 8px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
