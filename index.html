@@ -208,6 +208,7 @@
       box-shadow: 0 0 0 3px rgba(0,229,255,0.07);
     }
     .field-input::placeholder { color: var(--text-3); }
+    #login-pass { padding-right: 36px; }
 
     .login-error {
       font-family: var(--mono);
@@ -245,6 +246,60 @@
     }
     .login-btn:active { transform: translateY(0); }
 
+    .login-btn.loading {
+      opacity: 0.7;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .login-btn.loading svg { animation: spin 1s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* ── PASSWORD TOGGLE ───────────────────────────────────── */
+    .pw-toggle {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-3);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      transition: color 0.2s;
+    }
+    .pw-toggle:hover { color: var(--text-2); }
+
+    /* ── SHAKE ──────────────────────────────────────────────── */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 50%, 90% { transform: translateX(-6px); }
+      30%, 70% { transform: translateX(6px); }
+    }
+    .login-card.shake { animation: shake 0.4s ease; }
+
+    /* ── AMBIENT GLOW ──────────────────────────────────────── */
+    @keyframes glow-pulse {
+      0%, 100% { box-shadow: 0 0 0 1px rgba(0,229,255,0.06), 0 24px 64px rgba(0,0,0,0.7), 0 0 80px rgba(0,229,255,0.04); }
+      50%      { box-shadow: 0 0 0 1px rgba(0,229,255,0.12), 0 24px 64px rgba(0,0,0,0.7), 0 0 100px rgba(0,229,255,0.1); }
+    }
+    .login-card.glow { animation: glow-pulse 4s ease-in-out infinite; }
+
+    /* ── ATTEMPT COUNTER ────────────────────────────────────── */
+    .attempt-counter {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.06em;
+      text-align: center;
+      display: none;
+    }
+    .attempt-counter.visible { display: block; }
+
     .login-footer {
       text-align: center;
       font-family: var(--mono);
@@ -264,7 +319,7 @@
 <body>
 
 <div id="login-screen" role="dialog" aria-modal="true" aria-label="Authentication required">
-  <div class="login-card">
+  <div class="login-card" id="login-card">
 
     <div class="login-header">
       <div class="login-logo" aria-hidden="true">
@@ -299,6 +354,12 @@
           </svg>
           <input class="field-input" id="login-pass" type="password"
             placeholder="Enter password" autocomplete="current-password" />
+          <button class="pw-toggle" id="pw-toggle" type="button" aria-label="Toggle password visibility" tabindex="-1">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" id="pw-eye">
+              <path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/>
+              <circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -306,8 +367,13 @@
         &#10007; &nbsp;Wrong credentials. Access denied.
       </div>
 
+      <div class="attempt-counter" id="attempt-counter"></div>
+
       <button class="login-btn" id="login-btn" type="button">
-        Authenticate &amp; Enter
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:none" id="login-spinner">
+          <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5" stroke-dasharray="8 24" stroke-linecap="round"/>
+        </svg>
+        <span id="login-btn-text">Authenticate &amp; Enter</span>
       </button>
     </div>
 
@@ -326,23 +392,70 @@ const VALID_USERS = {
   'admin': 'admin'
 };
 
-const loginUser = document.getElementById('login-user');
-const loginPass = document.getElementById('login-pass');
-const loginBtn  = document.getElementById('login-btn');
-const loginErr  = document.getElementById('login-error');
+const loginUser   = document.getElementById('login-user');
+const loginPass   = document.getElementById('login-pass');
+const loginBtn    = document.getElementById('login-btn');
+const loginErr    = document.getElementById('login-error');
+const loginCard   = document.getElementById('login-card');
+const loginSpinner = document.getElementById('login-spinner');
+const loginBtnText = document.getElementById('login-btn-text');
+const pwToggle    = document.getElementById('pw-toggle');
+const pwEye       = document.getElementById('pw-eye');
+const attemptCounter = document.getElementById('attempt-counter');
 
+let attemptCount = 0;
+
+/* ── Password visibility toggle ─────────────────────────── */
+pwToggle.addEventListener('click', () => {
+  const isPassword = loginPass.type === 'password';
+  loginPass.type = isPassword ? 'text' : 'password';
+  pwEye.innerHTML = isPassword
+    ? `<path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/><line x1="2" y1="2" x2="14" y2="14" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>`
+    : `<path d="M1 8s2.5-5 7-5 7 5 7 5-2.5 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.2"/>`;
+});
+
+/* ── Ambient glow on load ─────────────────────────────── */
+loginCard.classList.add('glow');
+
+/* ── Login attempt ────────────────────────────────────── */
 function attemptLogin() {
   const u = loginUser.value.trim();
   const p = loginPass.value;
 
-  if (VALID_USERS[u] === p) {
-    window.location.href = 'dashboard.html';
-  } else {
+  /* Loading state */
+  loginBtn.classList.add('loading');
+  loginSpinner.style.display = 'block';
+  loginBtnText.textContent = 'AUTHENTICATING...';
+
+  setTimeout(() => {
+    if (VALID_USERS[u] === p) {
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
+    /* Failed */
+    attemptCount++;
+    loginBtn.classList.remove('loading');
+    loginSpinner.style.display = 'none';
+    loginBtnText.textContent = 'Authenticate & Enter';
+
     loginErr.classList.add('visible');
+    loginCard.classList.remove('shake');
+    void loginCard.offsetWidth; /* reflow */
+    loginCard.classList.add('shake');
     loginPass.value = '';
     loginPass.focus();
-    setTimeout(() => loginErr.classList.remove('visible'), 3000);
-  }
+
+    if (attemptCount > 1) {
+      attemptCounter.textContent = `Failed attempt ${attemptCount}`;
+      attemptCounter.classList.add('visible');
+    }
+
+    setTimeout(() => {
+      loginErr.classList.remove('visible');
+      loginCard.classList.remove('shake');
+    }, 3000);
+  }, 600);
 }
 
 loginBtn.addEventListener('click', attemptLogin);
