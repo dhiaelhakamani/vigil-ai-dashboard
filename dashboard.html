@@ -252,7 +252,7 @@
       background: #050709;
       position: relative;
       overflow: hidden;
-      min-height: 260px;
+      min-height: 180px;
     }
 
     /* Scanline overlay — the signature element */
@@ -406,7 +406,7 @@
     .detections-scroll {
       flex: 1;
       overflow-y: auto;
-      height: 80vh;
+      min-height: 0;
       padding: 16px;
       display: flex;
       flex-direction: row;
@@ -928,8 +928,8 @@
     @media (max-width: 900px) {
       .panel { border-right: none; border-bottom: 1px solid var(--border); }
       .panel:last-child { border-bottom: none; }
-      .video-wrapper { min-height: 220px; }
-      .detections-scroll { max-height: 60vh; }
+      .video-wrapper { min-height: 140px; }
+      .detections-scroll { min-height: 120px; }
       footer { padding: 8px 16px; }
       header { padding: 0 16px; }
     }
