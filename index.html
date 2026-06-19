@@ -267,12 +267,13 @@
       border: none;
       color: var(--danger);
       cursor: pointer;
-      padding: 4px;
+      padding: 8px;
       display: flex;
       align-items: center;
       transition: color 0.2s;
     }
     .pw-toggle:hover { color: var(--live-red); }
+    .pw-toggle svg { pointer-events: auto; }
 
     /* ── SHAKE ──────────────────────────────────────────────── */
     @keyframes shake {
