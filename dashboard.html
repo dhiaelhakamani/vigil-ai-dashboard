@@ -615,22 +615,22 @@
 
     /* ── FULLSCREEN BUTTON ──────────────────────────────────── */
     .fs-btn {
-      background: none;
-      border: 1px solid rgba(255,68,68,0.25);
-      border-radius: 3px;
-      color: var(--live-red);
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: var(--radius-sm);
+      color: var(--accent);
       cursor: pointer;
-      padding: 3px 6px;
+      padding: 5px 8px;
       display: flex;
       align-items: center;
-      transition: border-color 0.2s, background 0.2s;
-      opacity: 0.8;
+      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
     }
     .fs-btn:hover {
-      border-color: rgba(255,68,68,0.6);
-      background: rgba(255,68,68,0.1);
-      opacity: 1;
+      border-color: var(--accent);
+      background: rgba(0, 229, 255, 0.15);
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
     }
+    .fs-btn svg { width: 16px; height: 16px; }
 
     /* Fullscreen expanded state */
     .video-wrapper.fullscreen {
