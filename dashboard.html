@@ -837,6 +837,93 @@
     }
     .export-btn:hover { border-color: var(--success); color: var(--success); }
 
+    /* ── STATS BAR ───────────────────────────────────────────── */
+    .stats-bar {
+      padding: 8px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-shrink: 0;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.05em;
+    }
+    .stat-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .stat-count {
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .stat-label {
+      color: var(--text-muted);
+    }
+    .stat-divider {
+      width: 1px;
+      height: 14px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+    .stat-empty {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+
+    /* ── TELEMETRY ───────────────────────────────────────────── */
+    .telemetry-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .telem-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    .telem-item .label {
+      color: var(--text-secondary);
+    }
+    .telem-item .value {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    .telem-item .value.warning { color: var(--warning); }
+    .telem-item .value.danger  { color: var(--live-red); }
+
+    .telem-bar {
+      width: 36px;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    .telem-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 1s ease;
+    }
+    .telem-bar-fill.good  { background: var(--success); }
+    .telem-bar-fill.ok    { background: var(--warning); }
+    .telem-bar-fill.bad   { background: var(--live-red); }
+
     /* ── MOBILE ADJUSTMENTS ─────────────────────────────────── */
     @media (max-width: 900px) {
       .panel { border-right: none; border-bottom: 1px solid var(--border); }
@@ -949,6 +1036,29 @@
           <span>PROTOCOL</span>
           <span class="label">MJPEG</span>
         </div>
+        <div class="telemetry-wrap">
+          <div class="telem-item" title="Battery level">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="1" y="3.5" width="8" height="5" rx="1" stroke="#7a8fa6" stroke-width="1"/>
+              <path d="M10 5v2" stroke="#7a8fa6" stroke-width="1" stroke-linecap="round"/>
+            </svg>
+            <span class="value" id="battery-value">87%</span>
+            <span class="telem-bar"><span class="telem-bar-fill good" id="battery-bar" style="width:87%"></span></span>
+          </div>
+          <div class="telem-item" title="Signal strength">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 9v-1M5 9V6M8 9V3" stroke="#7a8fa6" stroke-width="1" stroke-linecap="round"/>
+            </svg>
+            <span class="value" id="signal-value">-62 dBm</span>
+          </div>
+          <div class="telem-item" title="Temperature">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 1v5a2 2 0 102 2V5" stroke="#7a8fa6" stroke-width="1" stroke-linecap="round"/>
+              <circle cx="6" cy="8" r="1.5" fill="#7a8fa6"/>
+            </svg>
+            <span class="value" id="temp-value">41°C</span>
+          </div>
+        </div>
         <div class="meta-item" id="uptime-item">
           <span>UPTIME</span>
           <span class="label" id="uptime-display">--:--:--</span>
@@ -992,6 +1102,10 @@
             CSV
           </button>
         </div>
+      </div>
+
+      <div class="stats-bar" id="stats-bar" aria-label="Detection type summary">
+        <span class="stat-empty" id="stats-empty">No detections yet</span>
       </div>
 
       <div class="detections-scroll" id="detections-list" role="list" aria-label="Detection events">
@@ -1115,6 +1229,31 @@
     }
     setInterval(tickClock, 1000);
     tickClock();
+
+    /* ── TELEMETRY SIMULATION ────────────────────────────── */
+    const $batteryValue = document.getElementById('battery-value');
+    const $batteryBar   = document.getElementById('battery-bar');
+    const $signalValue  = document.getElementById('signal-value');
+    const $tempValue    = document.getElementById('temp-value');
+
+    let battery = 87, signal = -62, temp = 41;
+
+    function updateTelemetry() {
+      battery = Math.max(5, Math.min(100, battery + (Math.random() - 0.48) * 0.5));
+      signal = Math.max(-90, Math.min(-30, signal + (Math.random() - 0.5) * 1));
+      temp = Math.max(30, Math.min(75, temp + (Math.random() - 0.5) * 0.4));
+
+      $batteryValue.textContent = Math.round(battery) + '%';
+      $batteryBar.style.width = Math.round(battery) + '%';
+      $batteryBar.className = 'telem-bar-fill ' + (battery > 30 ? (battery > 60 ? 'good' : 'ok') : 'bad');
+
+      $signalValue.textContent = Math.round(signal) + ' dBm';
+      $signalValue.className = 'value ' + (signal > -65 ? '' : (signal > -75 ? 'warning' : 'danger'));
+
+      $tempValue.textContent = Math.round(temp) + '°C';
+      $tempValue.className = 'value ' + (temp < 55 ? '' : (temp < 65 ? 'warning' : 'danger'));
+    }
+    setInterval(updateTelemetry, 3000);
 
     /* ── FULLSCREEN ─────────────────────────────────────── */
     const $videoWrapper = document.getElementById('video-wrapper');
@@ -1288,6 +1427,39 @@
       });
     }
 
+    /* ── STATS BAR ──────────────────────────────────────── */
+    const $statsBar  = document.getElementById('stats-bar');
+    const $statsEmpty = document.getElementById('stats-empty');
+    const TYPE_COLORS = { FIRE: '#ff6b35', PERSON: '#00e5ff', VEHICLE: '#ffb347', OBJECT: '#7a8fa6' };
+
+    function updateStats(items) {
+      const counts = { FIRE: 0, PERSON: 0, VEHICLE: 0, OBJECT: 0 };
+      items.forEach(d => {
+        const label = inferLabel(d.image);
+        if (counts.hasOwnProperty(label)) counts[label]++;
+      });
+
+      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+      if (total === 0) {
+        $statsBar.innerHTML = '<span class="stat-empty">No detections yet</span>';
+        return;
+      }
+
+      let html = '';
+      const types = ['FIRE', 'PERSON', 'VEHICLE', 'OBJECT'];
+      types.forEach((type, i) => {
+        if (counts[type] > 0) {
+          if (html) html += '<span class="stat-divider"></span>';
+          html += `<span class="stat-item">
+            <span class="stat-dot" style="background:${TYPE_COLORS[type]}"></span>
+            <span class="stat-count">${counts[type]}</span>
+            <span class="stat-label">${type}</span>
+          </span>`;
+        }
+      });
+      $statsBar.innerHTML = html;
+    }
+
     /* ── FETCH DETECTIONS ────────────────────────────────── */
     async function fetchDetections() {
       try {
@@ -1307,6 +1479,7 @@
         });
 
         detectionData = items;
+        updateStats(items);
 
         /* Alert sound for new detections matching alert types */
         if (newTimestamps.size > 0) {
@@ -1463,6 +1636,15 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
+
+    /* ── KEYBOARD SHORTCUTS ────────────────────────────── */
+    document.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT') return;
+      const key = e.key.toLowerCase();
+      if (key === 'f') { e.preventDefault(); toggleFullscreen(); }
+      if (key === 'r') { e.preventDefault(); clearTimeout(refreshTimer); clearInterval(progressTimer); poll(); }
+      if (key === 'e') { e.preventDefault(); exportCSV(); }
+    });
 
     /* ── LOGOUT ──────────────────────────────────────────── */
     document.getElementById('logout-btn').addEventListener('click', () => {
